@@ -93,10 +93,11 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
 
 
 def test_generate_product_variant_payload(
-    product_with_variant_with_two_attributes, product_with_images
+    product_with_variant_with_two_attributes, product_with_images, channel_USD
 ):
     variant = product_with_variant_with_two_attributes.variants.first()
-    payload = json.loads(generate_product_variant_payload(variant))[0]
+    payload = json.loads(generate_product_variant_payload([variant]))[0]
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
     extra_dict_data = ["attributes", "product_id", "media"]
@@ -117,6 +118,7 @@ def test_generate_product_variant_payload(
         "cost_price_amount": "1.000",
         "currency": "USD",
         "id": ANY,
+        "channel_slug": {"id": channel_id, "slug": channel_USD.slug, "type": "Channel"},
         "price_amount": "10.000",
         "type": "ProductVariantChannelListing",
     }
@@ -124,11 +126,12 @@ def test_generate_product_variant_payload(
 
 
 def test_generate_product_variant_with_external_media_payload(
-    product_with_variant_with_external_media,
+    product_with_variant_with_external_media, channel_USD
 ):
     variant = product_with_variant_with_external_media.variants.first()
-    payload = json.loads(generate_product_variant_payload(variant))[0]
+    payload = json.loads(generate_product_variant_payload([variant]))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     additional_fields = ["channel_listings"]
     extra_dict_data = ["attributes", "product_id", "media"]
     payload_fields = list(
@@ -136,7 +139,6 @@ def test_generate_product_variant_with_external_media_payload(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
         )
     )
-
     for field in payload_fields:
         assert payload.get(field) is not None
 
@@ -152,6 +154,7 @@ def test_generate_product_variant_with_external_media_payload(
         "currency": "USD",
         "id": ANY,
         "price_amount": "10.000",
+        "channel_slug": {"id": channel_id, "slug": channel_USD.slug, "type": "Channel"},
         "type": "ProductVariantChannelListing",
     }
     assert len(payload.keys()) == len(payload_fields)
@@ -166,7 +169,7 @@ def test_generate_product_variant_deleted_payload(
         "variant_media",
     ).first()
     ProductVariant.objects.filter(id=variant.id).delete()
-    payload = json.loads(generate_product_variant_payload(variant))[0]
+    payload = json.loads(generate_product_variant_payload([variant]))[0]
     [_, payload_variant_id] = graphene.Node.from_global_id(payload["id"])
     additional_fields = ["channel_listings"]
     extra_dict_data = ["attributes", "product_id", "media"]
