@@ -80,7 +80,7 @@ def test_generate_order_payload(
         "captured_amount": str(payment_txn_captured.captured_amount),
         "currency": payment_txn_captured.currency,
         "billing_email": payment_txn_captured.billing_email,
-        "billing_first_name": payment_txn_captured.billing_first_nam,
+        "billing_first_name": payment_txn_captured.billing_first_name,
         "billing_last_name": payment_txn_captured.billing_last_name,
         "billing_company_name": payment_txn_captured.billing_company_name,
         "billing_address_1": payment_txn_captured.billing_address_1,
@@ -116,6 +116,12 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     undiscounted_unit_price_gross_amount = (
         line.undiscounted_unit_price.gross.amount.quantize(Decimal("0.001"))
     )
+    undiscounted_total_price_net_amount = (
+        line.undiscounted_total_price.net.amount.quantize(Decimal("0.001"))
+    )
+    undiscounted_total_price_gross_amount = (
+        line.undiscounted_total_price.gross.amount.quantize(Decimal("0.001"))
+    )
 
     total_line = line.total_price
     global_warehouse_id = graphene.Node.to_global_id(
@@ -150,6 +156,10 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "undiscounted_unit_price_net_amount": str(undiscounted_unit_price_net_amount),
         "undiscounted_unit_price_gross_amount": str(
             undiscounted_unit_price_gross_amount
+        ),
+        "undiscounted_total_price_net_amount": str(undiscounted_total_price_net_amount),
+        "undiscounted_total_price_gross_amount": str(
+            undiscounted_total_price_gross_amount
         ),
     }
 
